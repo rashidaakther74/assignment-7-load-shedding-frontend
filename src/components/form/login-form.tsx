@@ -20,6 +20,7 @@ import { toast } from "../ui/toast";
 import { Spinner } from "../ui/spinner";
 
 import Link from "next/link";
+import { loginSchema } from "@/validations";
 
 export default function LoginForm() {
     const router = useRouter();
@@ -32,9 +33,9 @@ export default function LoginForm() {
             password: "Tarek123@@",
         },
 
-        // validators: {
-        //     onSubmit: loginSchema,
-        // },
+        validators: {
+            onSubmit: loginSchema,
+        },
         onSubmit: ({ value }) => {
             const loginData = {
                 email: value.email,
