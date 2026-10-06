@@ -8,7 +8,10 @@ export const adminRoutes = [
                 title: "Overview",
                 url: `${prefix}`,
             },
-
+            {
+                title: "Areas",
+                url: `${prefix}/areas`,
+            },
         ],
     },
     {
