@@ -1,54 +1,27 @@
 "use client";
 
-import { AiInsightsPanel } from "@/components/dashboard/ai-insights-panel";
-import { StatCard } from "@/components/dashboard/stat-card";
-import { Button } from "@/components/ui/button";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MapPin, Users, CalendarClock, CircleAlert, Receipt, TrendingUp } from "lucide-react";
+import { StatCard } from "@/components/dashboard/stat-card";
 import { useAiInsights } from "@/hook";
-import {
-    ArrowRight,
-    CalendarClock,
-    CircleAlert,
-    MapPin,
-    Receipt,
-    Sparkles,
-    TrendingUp,
-    Users,
-} from "lucide-react";
-import Link from "next/link";
 
-const formatAmount = (amount: number) =>
-    amount.toLocaleString("en-US", { maximumFractionDigits: 0 });
-
-export default function AdminOverviewPage() {
+export default function OperatorOverviewPage() {
     const { data: insights, isPending, isError } = useAiInsights();
 
     const stats = insights?.stats;
-    const openComplaints = stats
-        ? stats.complaints.pending + stats.complaints.inProgress
-        : 0;
 
     return (
         <div className="flex flex-col gap-6 p-4 md:p-6">
-            {/* page header */}
             <div className="flex flex-col gap-1">
                 <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
-                    Overview
+                    Operator Dashboard
                 </h1>
                 <p className="text-muted-foreground text-sm">
-                    Live status of your load-shedding operations, with AI generated
-                    insights.
+                    Manage schedules and handle complaints.
                 </p>
             </div>
 
-            {/* stats */}
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {isPending ? (
                     Array.from({ length: 6 }).map((_, index) => (
@@ -67,8 +40,7 @@ export default function AdminOverviewPage() {
                     <Card className="sm:col-span-2 xl:col-span-3">
                         <CardContent className="text-muted-foreground flex items-center gap-2 py-6 text-sm">
                             <CircleAlert className="text-destructive size-4" />
-                            Stats could not be loaded. Check that the API server is
-                            running, then refresh this page.
+                            Stats could not be loaded. Check that the API server is running.
                         </CardContent>
                     </Card>
                 ) : (
@@ -102,10 +74,10 @@ export default function AdminOverviewPage() {
                         />
                         <StatCard
                             title="Open complaints"
-                            value={openComplaints}
+                            value={stats.complaints.pending + stats.complaints.inProgress}
                             icon={CircleAlert}
                             badge={
-                                openComplaints > 0
+                                stats.complaints.pending + stats.complaints.inProgress > 0
                                     ? { label: "Action needed", variant: "warning" }
                                     : { label: "All clear", variant: "success" }
                             }
@@ -113,78 +85,23 @@ export default function AdminOverviewPage() {
                         />
                         <StatCard
                             title="Collected"
-                            value={`৳${formatAmount(stats.payments.collectedAmount)}`}
+                            value={`৳${stats.payments.collectedAmount.toLocaleString()}`}
                             icon={Receipt}
                             description={`${stats.payments.paid} paid payments`}
                         />
                         <StatCard
                             title="Outstanding"
-                            value={`৳${formatAmount(stats.payments.pendingAmount)}`}
+                            value={`৳${stats.payments.pendingAmount.toLocaleString()}`}
                             icon={TrendingUp}
                             badge={
                                 stats.payments.failed > 0
-                                    ? {
-                                          label: `${stats.payments.failed} failed`,
-                                          variant: "destructive",
-                                      }
+                                    ? { label: `${stats.payments.failed} failed`, variant: "destructive" }
                                     : undefined
                             }
                             description={`${stats.payments.pending} payments pending`}
                         />
                     </>
                 )}
-            </div>
-
-            {/* AI insights + assistant CTA */}
-            <div className="grid gap-4 lg:grid-cols-3">
-                <div className="lg:col-span-2">
-                    <AiInsightsPanel />
-                </div>
-
-                <Card className="justify-between gap-4">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Sparkles className="text-primary size-4" />
-                            AI Assistant
-                        </CardTitle>
-                        <CardDescription>
-                            Ask about schedules, complaints, payments or areas in plain
-                            language — the assistant answers from live data.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-4">
-                        <ul className="text-muted-foreground flex flex-col gap-1.5 text-sm">
-                            <li>• &ldquo;When is the next load shedding?&rdquo;</li>
-                            <li>• &ldquo;Which complaints are still open?&rdquo;</li>
-                            <li>• &ldquo;How much payment is pending?&rdquo;</li>
-                        </ul>
-                        <Link
-                            href="/admin/ai"
-                            className="self-start inline-flex items-center justify-center gap-1.5 rounded-md border border-transparent bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/80 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 transition-colors"
-                        >
-                            Open assistant
-                            <ArrowRight className="size-3.5" />
-                        </Link>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* quick links */}
-            <div className="flex flex-wrap gap-2">
-                <Link
-                    href="/admin"
-                    className="hover:bg-muted inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors"
-                >
-                    Overview
-                    <ArrowRight className="size-3" />
-                </Link>
-                <Link
-                    href="/admin/ai"
-                    className="hover:bg-muted inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors"
-                >
-                    AI Assistant
-                    <ArrowRight className="size-3" />
-                </Link>
             </div>
         </div>
     );

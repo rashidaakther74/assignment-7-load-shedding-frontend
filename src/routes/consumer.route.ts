@@ -1,4 +1,4 @@
-const prefix = "/dashboard";
+const prefix = "/consumer";
 
 export const consumerRoutes = [
     {
@@ -8,7 +8,10 @@ export const consumerRoutes = [
                 title: "Overview",
                 url: `${prefix}`,
             },
-           
+            {
+                title: "My Complaints",
+                url: `${prefix}/complaints`,
+            },
         ],
     },
     {

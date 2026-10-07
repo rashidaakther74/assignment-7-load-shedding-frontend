@@ -5,11 +5,13 @@ export interface AIChatMessage {
     content: string;
 }
 
-export type AIProvider = "gemini" | "local";
+export interface AIChatPayload {
+    messages: AIChatMessage[];
+}
 
-export interface AIChatResponse {
-    provider: AIProvider;
-    message: AIChatMessage;
+export interface AIActor {
+    name?: string;
+    role?: string;
 }
 
 export interface AIStats {
@@ -40,10 +42,18 @@ export interface AIStats {
     topAreas: { name: string; users: number; schedules: number }[];
 }
 
-export interface AIInsights {
-    provider: AIProvider;
-    generatedAt: string;
+export interface AIInsightBody {
     summary: string;
     recommendations: string[];
+}
+
+export interface AIInsights extends AIInsightBody {
+    provider: "gemini" | "local";
+    generatedAt: string;
     stats: AIStats;
+}
+
+export interface AIChatResponse {
+    provider: "gemini" | "local";
+    message: AIChatMessage;
 }

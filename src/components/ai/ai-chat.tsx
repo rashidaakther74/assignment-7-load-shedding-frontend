@@ -1,7 +1,7 @@
 "use client";
 
 import { useAiChat } from "@/hook";
-import type { AIChatMessage } from "@/types/ai.type";
+import type { AIChatMessage, AIChatPayload, AIChatResponse } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -25,7 +25,7 @@ export default function AiChat() {
 
     const { mutate, isPending, data: chatResponse } = useAiChat();
 
-    const provider = chatResponse?.data.provider;
+    const provider = chatResponse?.provider;
 
     useEffect(() => {
         const node = scrollRef.current;
@@ -49,13 +49,15 @@ export default function AiChat() {
         setMessages(nextMessages);
         setInput("");
 
-        mutate(nextMessages, {
-            onSuccess: (response) => {
-                setMessages((prev) => [...prev, response.data.message]);
+        const payload: AIChatPayload = { messages: nextMessages };
+
+        mutate(payload, {
+            onSuccess: (response: AIChatResponse) => {
+                setMessages((prev) => [...prev, response.message]);
             },
             onError: (error) => {
                 const message =
-                    (error as { data?: { message?: string } })?.data?.message ||
+                    (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
                     (error as { message?: string })?.message ||
                     "The assistant could not reply, please try again";
 

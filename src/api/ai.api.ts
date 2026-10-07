@@ -1,14 +1,14 @@
 import apiClient from "@/lib/apiClient";
-import type { AIChatMessage, AIChatResponse, AIInsights } from "@/types/ai.type";
 import type { ApiResponse } from "@/types";
+import type { AIInsights, AIChatPayload, AIChatResponse } from "@/types";
 
-export function getAiInsights() {
+export function getAIInsights() {
     return apiClient<ApiResponse<AIInsights>>("/ai/insights");
 }
 
-export function sendAiChat(messages: AIChatMessage[]) {
+export function chatWithAI(payload: AIChatPayload) {
     return apiClient<ApiResponse<AIChatResponse>>("/ai/chat", {
         method: "POST",
-        body: { messages },
+        body: payload,
     });
 }

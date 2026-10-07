@@ -15,6 +15,15 @@ export const operatorRoutes = [
         ],
     },
     {
+        title: "Complaints",
+        items: [
+            {
+                title: "All Complaints",
+                url: `${prefix}/complaints`,
+            },
+        ],
+    },
+    {
         title: "App Settings",
         items: [
             {

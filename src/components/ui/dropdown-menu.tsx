@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { Menu as MenuPrimitive } from "@base-ui/react/menu"
 import { cn } from "cn"
 
@@ -9,13 +10,23 @@ function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {
   return <MenuPrimitive.Root data-slot="dropdown-menu" {...props} />
 }
 
-function DropdownMenuTrigger({ className, ...props }: MenuPrimitive.Trigger.Props) {
+function DropdownMenuTrigger({
+  className,
+  children,
+  ...props
+}: MenuPrimitive.Trigger.Props & { asChild?: boolean; children?: React.ReactNode }) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { asChild, ...restProps } = props;
   return (
     <MenuPrimitive.Trigger
+      // @ts-ignore - asChild is supported by the component but not in types
       data-slot="dropdown-menu-trigger"
       className={cn(className)}
-      {...props}
-    />
+      asChild={asChild}
+      {...(restProps as any)}
+    >
+      {children}
+    </MenuPrimitive.Trigger>
   )
 }
 
@@ -48,7 +59,11 @@ function DropdownMenuContent({
   )
 }
 
-function DropdownMenuItem({ className, ...props }: MenuPrimitive.Item.Props) {
+function DropdownMenuItem({
+  className,
+  children,
+  ...props
+}: MenuPrimitive.Item.Props & { children?: React.ReactNode }) {
   return (
     <MenuPrimitive.Item
       data-slot="dropdown-menu-item"
@@ -57,7 +72,9 @@ function DropdownMenuItem({ className, ...props }: MenuPrimitive.Item.Props) {
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </MenuPrimitive.Item>
   )
 }
 
