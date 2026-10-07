@@ -29,6 +29,7 @@ export default function Header() {
 
     const routes = [
         { name: "Home", url: "/" },
+        { name: "Areas", url: "/areas" },
     ];
 
     const handleLogout = () => {
