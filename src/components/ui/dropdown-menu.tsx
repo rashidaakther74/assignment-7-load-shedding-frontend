@@ -22,7 +22,7 @@ function DropdownMenuTrigger({
       // @ts-ignore - asChild is supported by the component but not in types
       data-slot="dropdown-menu-trigger"
       className={cn(className)}
-      asChild={asChild}
+
       {...(restProps as any)}
     >
       {children}
