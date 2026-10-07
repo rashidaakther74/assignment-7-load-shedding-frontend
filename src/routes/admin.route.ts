@@ -17,6 +17,10 @@ export const adminRoutes = [
                 url: `${prefix}/complaints`,
             },
             {
+                title: "Payments",
+                url: `${prefix}/payments`,
+            },
+            {
                 title: "AI Assistant",
                 url: `${prefix}/ai`,
             },

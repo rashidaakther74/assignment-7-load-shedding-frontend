@@ -5,11 +5,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MapPin, Users, CalendarClock, CircleAlert, Receipt, TrendingUp } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { useAiInsights } from "@/hook";
+import { useGetSchedules } from "@/hook";
 
 export default function OperatorOverviewPage() {
     const { data: insights, isPending, isError } = useAiInsights();
+    const { data: schedulesResponse, isLoading: isLoadingSchedules } = useGetSchedules();
 
     const stats = insights?.stats;
+    const schedules: any[] = schedulesResponse?.data || [];
+    const upcomingSchedules = schedules.filter((s) => new Date(s.date) >= new Date()).length;
 
     return (
         <div className="flex flex-col gap-6 p-4 md:p-6">
@@ -63,14 +67,14 @@ export default function OperatorOverviewPage() {
                         />
                         <StatCard
                             title="Upcoming schedules"
-                            value={stats.upcomingSchedules}
+                            value={upcomingSchedules}
                             icon={CalendarClock}
                             badge={
-                                stats.upcomingSchedules > 0
+                                upcomingSchedules > 0
                                     ? { label: "Published", variant: "info" }
                                     : { label: "None", variant: "muted" }
                             }
-                            description={`${stats.totalSchedules} schedules in total`}
+                            description={`${schedules.length} schedules in total`}
                         />
                         <StatCard
                             title="Open complaints"

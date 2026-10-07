@@ -12,6 +12,10 @@ export const consumerRoutes = [
                 title: "My Complaints",
                 url: `${prefix}/complaints`,
             },
+            {
+                title: "My Payments",
+                url: `${prefix}/payments`,
+            },
         ],
     },
     {
