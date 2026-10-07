@@ -5,9 +5,22 @@ import { PlusIcon, EditIcon, Trash2Icon, SearchIcon, Loader2Icon } from "lucide-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useGetAreas, useCreateArea, useUpdateArea, useDeleteArea } from "@/hook";
@@ -26,13 +39,14 @@ export default function AreasPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [editData, setEditData] = useState<Area | null>(null);
+    const [createOpen, setCreateOpen] = useState(false);
 
     const { data: areasResponse, isLoading, error } = useGetAreas();
     const createAreaMutation = useCreateArea();
     const updateAreaMutation = useUpdateArea();
     const deleteAreaMutation = useDeleteArea();
 
-    const areas = areasResponse?.data || [];
+    const areas: Area[] = areasResponse?.data || [];
 
     const filteredAreas = areas.filter((area: Area) =>
         area.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -53,11 +67,15 @@ export default function AreasPage() {
     const onCreateSubmit = async (data: AreaFormData) => {
         try {
             await createAreaMutation.mutateAsync(data);
-            toast({ title: "Success", description: "Area created successfully", type: "success" });
+            toast({ title: "Success", description: "Area created successfully" });
             createForm.reset();
+            setCreateOpen(false);
         } catch (err: unknown) {
             const error = err as { response?: { data?: { message?: string } } };
-            toast({ title: "Error", description: error.response?.data?.message || "Failed to create area", type: "error" });
+            toast({
+                title: "Error",
+                description: error.response?.data?.message || "Failed to create area",
+            });
         }
     };
 
@@ -65,11 +83,14 @@ export default function AreasPage() {
         if (!editData) return;
         try {
             await updateAreaMutation.mutateAsync({ id: editData.id, payload: data });
-            toast({ title: "Success", description: "Area updated successfully", type: "success" });
+            toast({ title: "Success", description: "Area updated successfully" });
             setEditData(null);
         } catch (err: unknown) {
             const error = err as { response?: { data?: { message?: string } } };
-            toast({ title: "Error", description: error.response?.data?.message || "Failed to update area", type: "error" });
+            toast({
+                title: "Error",
+                description: error.response?.data?.message || "Failed to update area",
+            });
         }
     };
 
@@ -77,11 +98,14 @@ export default function AreasPage() {
         if (!deleteId) return;
         try {
             await deleteAreaMutation.mutateAsync(deleteId);
-            toast({ title: "Success", description: "Area deleted successfully", type: "success" });
+            toast({ title: "Success", description: "Area deleted successfully" });
             setDeleteId(null);
         } catch (err: unknown) {
             const error = err as { response?: { data?: { message?: string } } };
-            toast({ title: "Error", description: error.response?.data?.message || "Failed to delete area", type: "error" });
+            toast({
+                title: "Error",
+                description: error.response?.data?.message || "Failed to delete area",
+            });
         }
     };
 
@@ -101,73 +125,77 @@ export default function AreasPage() {
                     <h1 className="text-3xl font-bold tracking-tight">Areas</h1>
                     <p className="text-muted-foreground">Manage areas and their information</p>
                 </div>
-                <Dialog>
-                    <DialogTrigger render={(triggerProps) => (
-                        <Button {...triggerProps}>
-                            <PlusIcon className="mr-2 h-4 w-4" />
-                            Add Area
-                        </Button>
-                    )} />
+
+                {/* Create Area Dialog Trigger Button */}
+                <Button onClick={() => setCreateOpen(true)}>
+                    <PlusIcon className="mr-2 h-4 w-4" />
+                    Add Area
+                </Button>
+
+                {/* Create Area Dialog Modal */}
+                <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Create New Area</DialogTitle>
                             <DialogDescription>Fill in the details below to create a new area.</DialogDescription>
                         </DialogHeader>
-                        <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
-                            <div className="grid gap-4 py-4">
-                                <FormField
-                                    control={createForm.control}
-                                    name="name"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Name</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Area name" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={createForm.control}
-                                    name="code"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Code</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Area code" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={createForm.control}
-                                    name="district"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>District (Optional)</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="District name" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-                            <DialogFooter>
-                                <Button type="submit" disabled={createAreaMutation.isPending}>
-                                    {createAreaMutation.isPending ? (
-                                        <>
-                                            <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                                            Creating...
-                                        </>
-                                    ) : (
-                                        "Create Area"
-                                    )}
-                                </Button>
-                            </DialogFooter>
-                        </form>
+                        <FormProvider {...createForm}>
+                            <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
+                                <div className="grid gap-4 py-4">
+                                    <FormField
+                                        control={createForm.control}
+                                        name="name"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Name</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Area name" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={createForm.control}
+                                        name="code"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Code</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Area code" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={createForm.control}
+                                        name="district"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>District (Optional)</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="District name" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                                <DialogFooter>
+                                    <Button type="submit" disabled={createAreaMutation.isPending}>
+                                        {createAreaMutation.isPending ? (
+                                            <>
+                                                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                                                Creating...
+                                            </>
+                                        ) : (
+                                            "Create Area"
+                                        )}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </FormProvider>
                     </DialogContent>
                 </Dialog>
             </div>
@@ -246,13 +274,13 @@ export default function AreasPage() {
             </div>
 
             {/* Edit Dialog */}
-            {editData && (
-                <Dialog open onOpenChange={(open) => !open && setEditData(null)}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Edit Area</DialogTitle>
-                            <DialogDescription>Update the area details.</DialogDescription>
-                        </DialogHeader>
+            <Dialog open={!!editData} onOpenChange={(open) => !open && setEditData(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit Area</DialogTitle>
+                        <DialogDescription>Update the area details.</DialogDescription>
+                    </DialogHeader>
+                    <FormProvider {...editForm}>
                         <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
                             <div className="grid gap-4 py-4">
                                 <FormField
@@ -308,36 +336,40 @@ export default function AreasPage() {
                                 </Button>
                             </DialogFooter>
                         </form>
-                    </DialogContent>
-                </Dialog>
-            )}
+                    </FormProvider>
+                </DialogContent>
+            </Dialog>
 
             {/* Delete Confirmation Dialog */}
-            {deleteId && (
-                <Dialog open onOpenChange={(open) => !open && setDeleteId(null)}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Delete Area</DialogTitle>
-                            <DialogDescription>Are you sure you want to delete this area? This action cannot be undone.</DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                            <Button variant="outline" onClick={() => setDeleteId(null)}>
-                                Cancel
-                            </Button>
-                            <Button variant="destructive" onClick={handleDelete} disabled={deleteAreaMutation.isPending}>
-                                {deleteAreaMutation.isPending ? (
-                                    <>
-                                        <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                                        Deleting...
-                                    </>
-                                ) : (
-                                    "Delete"
-                                )}
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            )}
+            <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete Area</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete this area? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeleteId(null)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleDelete}
+                            disabled={deleteAreaMutation.isPending}
+                        >
+                            {deleteAreaMutation.isPending ? (
+                                <>
+                                    <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                                    Deleting...
+                                </>
+                            ) : (
+                                "Delete"
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

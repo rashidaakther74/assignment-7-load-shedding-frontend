@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as Slot from "@radix-ui/react-slot";
-import { Controller, ControllerProps, ControllerRenderProps, ControllerFieldState, FieldPath, FieldValues, FormProvider, useFormContext } from "react-hook-form";
+import { Controller, ControllerProps, ControllerFieldState, FieldPath, FieldValues, FormProvider, useFormContext } from "react-hook-form";
 import { cn } from "cn";
 import { Label } from "@/components/ui/label";
 
@@ -14,16 +14,19 @@ interface FormFieldContextProps<TFieldValues extends FieldValues> {
 const FormFieldContext = React.createContext<FormFieldContextProps<FieldValues> | null>(null);
 
 function FormFieldInternal<TFieldValues extends FieldValues>({
+    control,
     ...props
 }: ControllerProps<TFieldValues>) {
     return (
-        <Controller {...props}>
-            {({ field, fieldState, formState }: { field: ControllerRenderProps<TFieldValues, FieldPath<TFieldValues>>; fieldState: ControllerFieldState; formState: ReturnType<typeof import("react-hook-form").useFormState<TFieldValues>> }) => (
+        <Controller
+            control={control}
+            {...props}
+            render={({ field, fieldState, formState }) => (
                 <FormFieldContext.Provider value={{ name: props.name, fieldState }}>
                     {props.render({ field, fieldState, formState })}
                 </FormFieldContext.Provider>
             )}
-        </Controller>
+        />
     );
 }
 
