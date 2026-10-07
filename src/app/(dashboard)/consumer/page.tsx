@@ -28,7 +28,11 @@ export default function ConsumerOverviewPage() {
     const pendingPayments = payments.filter((p) => p.status === "PENDING").length;
     const failedPayments = payments.filter((p) => p.status === "FAILED").length;
 
-    const upcomingSchedules = schedules.filter((s) => new Date(s.date) >= new Date()).length;
+    const parseDateStr = (dateStr: string) => {
+        const [year, month, day] = dateStr?.split("-") || ["0000", "01", "01"];
+        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    };
+    const upcomingSchedules = schedules.filter((s) => parseDateStr(s.date) >= new Date()).length;
 
     const isLoading = isLoadingComplaints || isLoadingPayments || isLoadingSchedules;
 

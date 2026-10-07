@@ -13,7 +13,11 @@ export default function OperatorOverviewPage() {
 
     const stats = insights?.stats;
     const schedules: any[] = schedulesResponse?.data || [];
-    const upcomingSchedules = schedules.filter((s) => new Date(s.date) >= new Date()).length;
+    const parseDateStr = (dateStr: string) => {
+        const [year, month, day] = dateStr?.split("-") || ["0000", "01", "01"];
+        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    };
+    const upcomingSchedules = schedules.filter((s) => parseDateStr(s.date) >= new Date()).length;
 
     return (
         <div className="flex flex-col gap-6 p-4 md:p-6">

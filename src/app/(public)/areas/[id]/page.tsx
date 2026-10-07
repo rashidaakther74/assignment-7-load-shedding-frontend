@@ -244,7 +244,9 @@ function AreaDetailSkeleton() {
 
 function formatDate(dateString: string): string {
     try {
-        const date = new Date(dateString);
+        // Parse date-only string (YYYY-MM-DD) to avoid timezone issues
+        const [year, month, day] = dateString?.split("-") || ["0000", "01", "01"];
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
         return date.toLocaleDateString("en-US", {
             year: "numeric",
             month: "short",

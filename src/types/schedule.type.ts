@@ -16,7 +16,7 @@ export interface Schedule {
 }
 
 export interface CreateSchedulePayload {
-    areaId: string;
+    zoneId: string;
     startTime: string | Date;
     endTime: string | Date;
     date: string | Date;
@@ -24,7 +24,7 @@ export interface CreateSchedulePayload {
 }
 
 export interface UpdateSchedulePayload {
-    areaId?: string;
+    zoneId?: string;
     startTime?: string | Date;
     endTime?: string | Date;
     date?: string | Date;

@@ -32,7 +32,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 const scheduleSchema = z.object({
-    areaId: z.string().min(1, "Area is required"),
+    zoneId: z.string().min(1, "Zone is required"),
     startTime: z.string().min(1, "Start time is required"),
     endTime: z.string().min(1, "End time is required"),
     date: z.string().min(1, "Date is required"),
@@ -57,12 +57,12 @@ export default function OperatorSchedulesPage() {
 
     const createForm = useForm<ScheduleFormData>({
         resolver: zodResolver(scheduleSchema),
-        defaultValues: { areaId: "", startTime: "", endTime: "", date: "", reason: "" },
+        defaultValues: { zoneId: "", startTime: "", endTime: "", date: "", reason: "" },
     });
 
     const editForm = useForm<ScheduleFormData>({
         resolver: zodResolver(scheduleSchema),
-        defaultValues: { areaId: "", startTime: "", endTime: "", date: "", reason: "" },
+        defaultValues: { zoneId: "", startTime: "", endTime: "", date: "", reason: "" },
     });
 
     const onCreateSubmit = async (data: ScheduleFormData) => {
@@ -103,18 +103,22 @@ export default function OperatorSchedulesPage() {
     };
 
     const openCreateDialog = () => {
-        createForm.reset({ areaId: "", startTime: "", endTime: "", date: "", reason: "" });
+        createForm.reset({ zoneId: "", startTime: "", endTime: "", date: "", reason: "" });
         setIsDialogOpen(true);
     };
 
     const handleEditClick = (schedule: any) => {
         setEditSchedule(schedule);
         setEditId(schedule.id);
+        // Handle time-only strings (e.g., "14:30:00" -> "14:30")
+        const formatTime = (timeStr: string) => timeStr?.slice(0, 5) || "";
+        // Handle date-only strings (e.g., "2024-01-15" -> "2024-01-15")
+        const formatDate = (dateStr: string) => dateStr?.slice(0, 10) || "";
         editForm.reset({
-            areaId: schedule.areaId,
-            startTime: new Date(schedule.startTime).toISOString().slice(0, 16),
-            endTime: new Date(schedule.endTime).toISOString().slice(0, 16),
-            date: new Date(schedule.date).toISOString().slice(0, 10),
+            zoneId: schedule.zoneId || schedule.areaId,
+            startTime: formatTime(schedule.startTime),
+            endTime: formatTime(schedule.endTime),
+            date: formatDate(schedule.date),
             reason: schedule.reason || "",
         });
     };
@@ -144,16 +148,16 @@ export default function OperatorSchedulesPage() {
                             <div className="grid gap-4 py-4">
                                 <FormField
                                     control={createForm.control}
-                                    name="areaId"
+                                    name="zoneId"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Area</FormLabel>
+                                            <FormLabel>Zone</FormLabel>
                                             <FormControl>
                                                 <select
                                                     {...field}
                                                     className="w-full border border-input bg-background rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                                 >
-                                                    <option value="">Select an area</option>
+                                                    <option value="">Select a zone</option>
                                                     {areas.map((area: any) => (
                                                         <option key={area.id} value={area.id}>
                                                             {area.name} ({area.code}){area.district && ` - ${area.district}`}
@@ -251,16 +255,16 @@ export default function OperatorSchedulesPage() {
                             <div className="grid gap-4 py-4">
                                 <FormField
                                     control={editForm.control}
-                                    name="areaId"
+                                    name="zoneId"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Area</FormLabel>
+                                            <FormLabel>Zone</FormLabel>
                                             <FormControl>
                                                 <select
                                                     {...field}
                                                     className="w-full border border-input bg-background rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                                 >
-                                                    <option value="">Select an area</option>
+                                                    <option value="">Select a zone</option>
                                                     {areas.map((area: any) => (
                                                         <option key={area.id} value={area.id}>
                                                             {area.name} ({area.code}){area.district && ` - ${area.district}`}
@@ -363,15 +367,27 @@ export default function OperatorSchedulesPage() {
                         <div className="space-y-3">
                             {schedules.map((schedule) => {
                                 const isDeleting = deleteScheduleMutation.isPending && deleteConfirmId === schedule.id;
-                                const startTime = new Date(schedule.startTime).toLocaleTimeString("en-US", {
+                                // Parse time-only strings (e.g., "14:30:00") and date-only strings (e.g., "2024-01-15")
+                                const parseTime = (timeStr: string) => {
+                                    const [hours, minutes] = timeStr?.split(":") || ["00", "00"];
+                                    return { hour: parseInt(hours), minute: parseInt(minutes) };
+                                };
+                                const parseDate = (dateStr: string) => {
+                                    const [year, month, day] = dateStr?.split("-") || ["0000", "01", "01"];
+                                    return { year: parseInt(year), month: parseInt(month) - 1, day: parseInt(day) };
+                                };
+                                const startTimeObj = parseTime(schedule.startTime);
+                                const endTimeObj = parseTime(schedule.endTime);
+                                const dateObj = parseDate(schedule.date);
+                                const startTime = new Date(0, 0, 0, startTimeObj.hour, startTimeObj.minute).toLocaleTimeString("en-US", {
                                     hour: "2-digit",
                                     minute: "2-digit",
                                 });
-                                const endTime = new Date(schedule.endTime).toLocaleTimeString("en-US", {
+                                const endTime = new Date(0, 0, 0, endTimeObj.hour, endTimeObj.minute).toLocaleTimeString("en-US", {
                                     hour: "2-digit",
                                     minute: "2-digit",
                                 });
-                                const date = new Date(schedule.date).toLocaleDateString("en-US", {
+                                const date = new Date(dateObj.year, dateObj.month, dateObj.day).toLocaleDateString("en-US", {
                                     year: "numeric",
                                     month: "short",
                                     day: "numeric",
