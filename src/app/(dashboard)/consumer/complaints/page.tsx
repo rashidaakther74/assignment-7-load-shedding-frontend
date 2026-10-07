@@ -1,6 +1,6 @@
 "use client";
 
-import { PlusIcon, Loader2Icon } from "lucide-react";
+import { PlusIcon, Loader2Icon, AlertCircleIcon, ClockIcon, CheckCircleIcon, Trash2Icon, AlertTriangleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,9 +23,10 @@ import {
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useCreateComplaint } from "@/hook";
+import { useCreateComplaint, useGetMyComplaints, useDeleteMyComplaint } from "@/hook";
 import { toast } from "@/hook/use-toast";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 const complaintSchema = z.object({
     subject: z.string().min(3, "Subject must be at least 3 characters"),
@@ -34,9 +35,24 @@ const complaintSchema = z.object({
 
 type ComplaintFormData = z.infer<typeof complaintSchema>;
 
+const statusColors = {
+    PENDING: "bg-yellow-100 text-yellow-800",
+    IN_PROGRESS: "bg-blue-100 text-blue-800",
+    RESOLVED: "bg-green-100 text-green-800",
+};
+
+const statusIcons = {
+    PENDING: ClockIcon,
+    IN_PROGRESS: Loader2Icon,
+    RESOLVED: CheckCircleIcon,
+};
+
 export default function ConsumerComplaintsPage() {
     const createComplaintMutation = useCreateComplaint();
+    const deleteMyComplaintMutation = useDeleteMyComplaint();
+    const { data: myComplaints, isLoading: isLoadingComplaints } = useGetMyComplaints();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
     const createForm = useForm<ComplaintFormData>({
         resolver: zodResolver(complaintSchema),
@@ -58,6 +74,21 @@ export default function ConsumerComplaintsPage() {
         }
     };
 
+    const handleDelete = async (id: string) => {
+        try {
+            await deleteMyComplaintMutation.mutateAsync(id);
+            toast({ title: "Success", description: "Complaint deleted successfully" });
+            setDeleteConfirmId(null);
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            toast({
+                title: "Error",
+                description: error.response?.data?.message || "Failed to delete complaint",
+            });
+            setDeleteConfirmId(null);
+        }
+    };
+
     const openDialog = () => {
         createForm.reset({ subject: "", description: "" });
         setIsDialogOpen(true);
@@ -67,8 +98,8 @@ export default function ConsumerComplaintsPage() {
         <div className="p-6 space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Submit Complaint</h1>
-                    <p className="text-muted-foreground">Submit a new complaint for our team to review</p>
+                    <h1 className="text-3xl font-bold tracking-tight">My Complaints</h1>
+                    <p className="text-muted-foreground">View and submit complaints</p>
                 </div>
 
                 <Button onClick={openDialog}>
@@ -130,23 +161,97 @@ export default function ConsumerComplaintsPage() {
                 </Dialog>
             </div>
 
-            {/* Info Card */}
+            {/* My Complaints List */}
             <Card>
-                <CardContent className="pt-6">
-                    <div className="text-center py-8">
-                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                            <svg className="h-8 w-8 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                <circle cx="12" cy="12" r="10" />
-                                <path d="M12 16v-4" />
-                                <path d="M12 8h.01" />
-                            </svg>
+                <CardHeader>
+                    <CardTitle>My Complaints</CardTitle>
+                    <CardDescription>Track the status of your submitted complaints</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {isLoadingComplaints ? (
+                        <div className="flex justify-center py-8">
+                            <Loader2Icon className="h-8 w-8 animate-spin text-muted-foreground" />
                         </div>
-                        <h3 className="text-lg font-medium mb-2">Complaint Submitted</h3>
-                        <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-                            Your complaint has been submitted successfully. Our team will review it and get back to you soon.
-                            You can check the status of your complaint by contacting support.
-                        </p>
-                    </div>
+                    ) : myComplaints?.data && myComplaints.data.length > 0 ? (
+                        <div className="space-y-4">
+                            {myComplaints.data.map((complaint) => {
+                                const StatusIcon = statusIcons[complaint.status as keyof typeof statusIcons] || ClockIcon;
+                                const isDeleting = deleteMyComplaintMutation.isPending && deleteConfirmId === complaint.id;
+                                return (
+                                    <Card key={complaint.id} className="border-l-4 border-primary">
+                                        <CardContent className="pt-6">
+                                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <h3 className="text-lg font-medium">{complaint.subject}</h3>
+                                                        <Badge className={statusColors[complaint.status as keyof typeof statusColors] || ""}>
+                                                            <StatusIcon className="mr-1 h-3 w-3" />
+                                                            {complaint.status.replace("_", " ")}
+                                                        </Badge>
+                                                    </div>
+                                                    <p className="text-muted-foreground mb-3">{complaint.description}</p>
+                                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                                        <span>Submitted: {new Date(complaint.createdAt).toLocaleDateString()}</span>
+                                                        <span>Updated: {new Date(complaint.updatedAt).toLocaleDateString()}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {deleteConfirmId === complaint.id ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm text-muted-foreground">Delete?</span>
+                                                            <Button
+                                                                variant="destructive"
+                                                                size="sm"
+                                                                onClick={() => handleDelete(complaint.id)}
+                                                                disabled={isDeleting}
+                                                            >
+                                                                {isDeleting ? (
+                                                                    <Loader2Icon className="h-4 w-4 animate-spin" />
+                                                                ) : (
+                                                                    <Trash2Icon className="h-4 w-4" />
+                                                                )}
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => setDeleteConfirmId(null)}
+                                                                disabled={isDeleting}
+                                                            >
+                                                                <AlertTriangleIcon className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    ) : (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => setDeleteConfirmId(complaint.id)}
+                                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                        >
+                                                            <Trash2Icon className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="text-center py-12">
+                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                                <AlertCircleIcon className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                            <h3 className="text-lg font-medium mb-2">No Complaints Yet</h3>
+                            <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                                You haven't submitted any complaints yet. Click "Submit Complaint" to create your first one.
+                            </p>
+                            <Button onClick={openDialog}>
+                                <PlusIcon className="mr-2 h-4 w-4" />
+                                Submit Complaint
+                            </Button>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>

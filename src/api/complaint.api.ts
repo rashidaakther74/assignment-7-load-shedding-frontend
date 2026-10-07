@@ -6,6 +6,10 @@ export function getComplaints() {
     return apiClient<ApiResponse<Complaint[]>>("/complaints");
 }
 
+export function getMyComplaints() {
+    return apiClient<ApiResponse<Complaint[]>>("/complaints/my-complaints");
+}
+
 export function getComplaintById(id: string) {
     return apiClient<ApiResponse<Complaint>>(`/complaints/${id}`);
 }
@@ -20,4 +24,8 @@ export function updateComplaint(id: string, payload: UpdateComplaintPayload) {
 
 export function deleteComplaint(id: string) {
     return apiClient<ApiResponse<Complaint>>(`/complaints/${id}`, { method: "DELETE" });
+}
+
+export function deleteMyComplaint(id: string) {
+    return apiClient<ApiResponse<Complaint>>(`/complaints/my-complaints/${id}`, { method: "DELETE" });
 }
