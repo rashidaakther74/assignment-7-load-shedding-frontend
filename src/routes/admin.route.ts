@@ -20,10 +20,7 @@ export const adminRoutes = [
                 title: "Payments",
                 url: `${prefix}/payments`,
             },
-            {
-                title: "AI Assistant",
-                url: `${prefix}/ai`,
-            },
+         
         ],
     },
     {

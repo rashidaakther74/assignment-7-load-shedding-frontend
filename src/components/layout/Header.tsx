@@ -1,122 +1,86 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
-import { useGetMe, useLogout } from "@/hook";
+import { useGetMe } from "@/hook";
 import { buttonVariants } from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Spinner } from "@/components/ui/spinner";
-import { toast } from "@/components/ui/toast";
-import { cn } from "@/lib/utils";
-import { FiUser } from "react-icons/fi";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
+
+import UserMenu from "../auth/UserMenu";
+import Logo from "@/utils/Logo";
 
 export default function Header() {
-    const router = useRouter();
-    const queryClient = useQueryClient();
+    const [isOpen, setIsOpen] = useState(false);
     const { data, isPending } = useGetMe();
-    const { mutate: logout, isPending: logoutPending } = useLogout();
-
     const user = data?.data;
 
     const routes = [
         { name: "Home", url: "/" },
         { name: "Areas", url: "/areas" },
+        { name: "About Us", url: "/about" },
+        { name: "Contact", url: "/contact" },
     ];
 
-    const handleLogout = () => {
-        logout(undefined, {
-            onSuccess: () => {
-                toast.add({
-                    title: "User Logout Successfully",
-                    description: "You have been logged out",
-                    type: "success",
-                });
-
-                queryClient.removeQueries({ queryKey: ["user"] });
-                router.push("/");
-                router.refresh();
-            },
-            onError: (err: unknown) => {
-                const message =
-                    (err as { data?: { message?: string } })?.data?.message ||
-                    (err as { message?: string })?.message ||
-                    "Something went wrong, Please try again";
-
-                toast.add({
-                    title: "Logout Failed",
-                    description: message,
-                    type: "error",
-                });
-            },
-        });
-    };
-
     return (
-        <header className="h-16 w-full shrink-0 border-b">
-            <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
-                <div className="flex items-center gap-6">
-                    <Link href="/" className="flex items-center gap-2 font-medium">
-                        Load-Shedding
-                    </Link>
-
-                    <nav className="hidden gap-5 text-sm text-muted-foreground md:flex">
-                        {routes.map((route) => (
-                            <Link
-                                key={route.url}
-                                href={route.url}
-                                className="transition-colors hover:text-foreground"
+        <header className="h-16 w-full shrink-0 border-b bg-background">
+            <div className="relative mx-auto flex h-full max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
+                {/* 1. Left: Mobile Hamburger & Logo */}
+                <div className="flex items-center gap-2">
+                    {/* Mobile Menu */}
+                    <div className="md:hidden">
+                        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                            {/* Nested button এড়াতে সরাসরি buttonVariants স্টাইল ব্যবহার করা হয়েছে */}
+                            <SheetTrigger
+                                className={buttonVariants({ variant: "ghost", size: "icon" })}
+                                aria-label="Open Menu"
                             >
-                                {route.name}
-                            </Link>
-                        ))}
-                    </nav>
+                                <Menu className="h-5 w-5" />
+                            </SheetTrigger>
+                            <SheetContent side="left" className="w-72 p-6">
+                                <SheetTitle className="sr-only">Mobile Navigation</SheetTitle>
+                                <div className="mb-6">
+                                    <Logo />
+                                </div>
+                                <nav className="flex flex-col gap-4">
+                                    {routes.map((route) => (
+                                        <Link
+                                            key={route.url}
+                                            href={route.url}
+                                            onClick={() => setIsOpen(false)}
+                                            className="text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
+                                        >
+                                            {route.name}
+                                        </Link>
+                                    ))}
+                                </nav>
+                            </SheetContent>
+                        </Sheet>
+                    </div>
+
+                    <Logo />
                 </div>
 
+                {/* 2. Center: Desktop Navigation */}
+                <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-6 text-sm text-muted-foreground md:flex">
+                    {routes.map((route) => (
+                        <Link
+                            key={route.url}
+                            href={route.url}
+                            className="transition-colors hover:text-foreground"
+                        >
+                            {route.name}
+                        </Link>
+                    ))}
+                </nav>
+
+                {/* 3. Right: Auth / User Menu */}
                 <div className="flex items-center gap-3">
                     {isPending ? (
                         <Spinner className="text-muted-foreground" />
                     ) : user ? (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger
-                                className={cn(
-                                    buttonVariants({ variant: "outline", size: "icon" }),
-                                    "cursor-pointer"
-                                )}
-                            >
-                                <span className="flex items-center justify-center rounded-full text-foreground">
-                                    <FiUser className="h-4 w-4" />
-                                </span>
-                            </DropdownMenuTrigger>
-
-                            <DropdownMenuContent align="end" className="w-64">
-                                <DropdownMenuLabel className="font-normal">
-                                    <span className="block truncate text-sm font-medium">
-                                        {user.name}
-                                    </span>
-                                    <span className="block truncate text-xs text-muted-foreground">
-                                        {user.email}
-                                    </span>
-                                </DropdownMenuLabel>
-
-                                <DropdownMenuSeparator />
-
-                                <DropdownMenuItem
-                                    disabled={logoutPending}
-                                    onClick={handleLogout}
-                                    className="text-destructive focus:text-destructive cursor-pointer"
-                                >
-                                    {logoutPending ? "Logging out..." : "Logout"}
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <UserMenu user={user} />
                     ) : (
                         <Link
                             href="/login"

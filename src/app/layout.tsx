@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import Providers from "@/provider";
 import Header from "@/components/layout/Header";
 import { Toaster } from "@/components/ui/toast";
+import Footer from "@/components/layout/Footer";
 
 const notoSansHeading = Noto_Sans({ subsets: ['latin'], variable: '--font-heading' });
 
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Header />
           {children}
           <Toaster />
+          <Footer/>
         </body>
       </Providers>
     </html>

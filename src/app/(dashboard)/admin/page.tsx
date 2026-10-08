@@ -124,9 +124,9 @@ export default function AdminOverviewPage() {
                             badge={
                                 stats.payments.failed > 0
                                     ? {
-                                          label: `${stats.payments.failed} failed`,
-                                          variant: "destructive",
-                                      }
+                                        label: `${stats.payments.failed} failed`,
+                                        variant: "destructive",
+                                    }
                                     : undefined
                             }
                             description={`${stats.payments.pending} payments pending`}
@@ -135,39 +135,6 @@ export default function AdminOverviewPage() {
                 )}
             </div>
 
-            {/* AI insights + assistant CTA */}
-            <div className="grid gap-4 lg:grid-cols-3">
-                <div className="lg:col-span-2">
-                    <AiInsightsPanel />
-                </div>
-
-                <Card className="justify-between gap-4">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Sparkles className="text-primary size-4" />
-                            AI Assistant
-                        </CardTitle>
-                        <CardDescription>
-                            Ask about schedules, complaints, payments or areas in plain
-                            language — the assistant answers from live data.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-4">
-                        <ul className="text-muted-foreground flex flex-col gap-1.5 text-sm">
-                            <li>• &ldquo;When is the next load shedding?&rdquo;</li>
-                            <li>• &ldquo;Which complaints are still open?&rdquo;</li>
-                            <li>• &ldquo;How much payment is pending?&rdquo;</li>
-                        </ul>
-                        <Link
-                            href="/admin/ai"
-                            className="self-start inline-flex items-center justify-center gap-1.5 rounded-md border border-transparent bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/80 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 transition-colors"
-                        >
-                            Open assistant
-                            <ArrowRight className="size-3.5" />
-                        </Link>
-                    </CardContent>
-                </Card>
-            </div>
 
             {/* quick links */}
             <div className="flex flex-wrap gap-2">
@@ -178,13 +145,7 @@ export default function AdminOverviewPage() {
                     Overview
                     <ArrowRight className="size-3" />
                 </Link>
-                <Link
-                    href="/admin/ai"
-                    className="hover:bg-muted inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors"
-                >
-                    AI Assistant
-                    <ArrowRight className="size-3" />
-                </Link>
+
             </div>
         </div>
     );
