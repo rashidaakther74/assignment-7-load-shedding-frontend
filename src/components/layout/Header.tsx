@@ -7,7 +7,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
-
+// import Logo from "@/components/Logo";
 import UserMenu from "../auth/UserMenu";
 import Logo from "@/utils/Logo";
 
@@ -19,19 +19,18 @@ export default function Header() {
     const routes = [
         { name: "Home", url: "/" },
         { name: "Areas", url: "/areas" },
-        { name: "About Us", url: "/about" },
+        { name: "About", url: "/about" },
         { name: "Contact", url: "/contact" },
     ];
 
     return (
-        <header className="h-16 w-full shrink-0 border-b bg-background">
+        <header className="sticky top-0 z-50 h-16 w-full shrink-0 border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
             <div className="relative mx-auto flex h-full max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
                 {/* 1. Left: Mobile Hamburger & Logo */}
                 <div className="flex items-center gap-2">
                     {/* Mobile Menu */}
                     <div className="md:hidden">
                         <Sheet open={isOpen} onOpenChange={setIsOpen}>
-                            {/* Nested button এড়াতে সরাসরি buttonVariants স্টাইল ব্যবহার করা হয়েছে */}
                             <SheetTrigger
                                 className={buttonVariants({ variant: "ghost", size: "icon" })}
                                 aria-label="Open Menu"
