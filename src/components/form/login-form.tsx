@@ -29,8 +29,8 @@ export default function LoginForm() {
     const { mutate: login, isPending: loginPending } = useLogin();
     const form = useForm({
         defaultValues: {
-            email: "tarekrahman@gmail.com",
-            password: "Tarek123@@",
+            email: "",
+            password: "",
         },
 
         validators: {
