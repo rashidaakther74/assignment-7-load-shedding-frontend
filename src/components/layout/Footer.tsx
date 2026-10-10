@@ -8,7 +8,7 @@ import { Zap, ShieldCheck, ArrowUpRight, Mail, MapPin } from "lucide-react";
 export default function Footer() {
     const pathname = usePathname();
 
-    // ড্যাশবোর্ড বা অ্যাডমিন প্যানেলে থাকলে ফুটার হাইড থাকবে
+   
     if (
         pathname?.startsWith("/dashboard") ||
         pathname?.startsWith("/admin") ||
