@@ -11,10 +11,15 @@ import {
     MoreVertical,
     EditIcon,
     Trash2Icon,
+    EyeIcon,
+    EyeOffIcon,
+    MessageSquareWarningIcon,
+    AlertTriangleIcon,
+    UserIcon,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
@@ -98,22 +103,24 @@ function StatCard({
     variant: "default" | "warning" | "info" | "success";
 }) {
     const variantClasses = {
-        default: "bg-muted text-muted-foreground",
+        default: "bg-amber-500/10 text-amber-500",
         warning: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
         info: "bg-sky-500/15 text-sky-600 dark:text-sky-400",
         success: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
     };
 
     return (
-        <Card>
-            <CardContent className="p-4">
+        <Card className="rounded-2xl border-border/70 shadow-sm">
+            <CardContent className="p-5">
                 <div className="flex items-center justify-between">
                     <div>
-                        <p className="text-sm text-muted-foreground">{title}</p>
-                        <p className="text-2xl font-bold">{value}</p>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            {title}
+                        </p>
+                        <p className="text-3xl font-extrabold text-foreground mt-1">{value}</p>
                     </div>
-                    <div className={`p-3 rounded-lg ${variantClasses[variant]}`}>
-                        <Icon className="h-5 w-5" />
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${variantClasses[variant]}`}>
+                        <Icon className="h-6 w-6" />
                     </div>
                 </div>
             </CardContent>
@@ -127,6 +134,8 @@ export default function AdminComplaintsPage() {
     const [editId, setEditId] = useState<string | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [editComplaint, setEditComplaint] = useState<Complaint | null>(null);
+    // শুরুতে false রাখা হয়েছে যাতে পেইজে ঢুকলেই নিচে লিস্ট না দেখায়, বাটনে ক্লিক করলেই কেবল দেখাবে!
+    const [showAllComplaints, setShowAllComplaints] = useState(false);
 
     const { data: complaintsResponse, isLoading, error } = useGetComplaints();
     const updateComplaintMutation = useUpdateComplaint();
@@ -187,37 +196,22 @@ export default function AdminComplaintsPage() {
     };
 
     return (
-        <div className="p-6 space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">All Complaints</h1>
-                    <p className="text-muted-foreground">Manage and track all user complaints</p>
-                </div>
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative w-full sm:w-80">
-                    <SearchIcon className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        placeholder="Search by subject, description, user..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-9"
-                    />
-                </div>
-                <div className="relative w-full sm:w-48">
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value as ComplaintStatus | "all")}
-                        className="w-full appearance-none pl-9 pr-8 py-2 border border-input bg-background rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                    >
-                        <option value="all">All Statuses</option>
-                        <option value="PENDING">Pending</option>
-                        <option value="IN_PROGRESS">In Progress</option>
-                        <option value="RESOLVED">Resolved</option>
-                    </select>
-                    <CircleAlert className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <div className="p-4 md:p-8 space-y-6 min-h-[85vh]">
+            {/* Top Portal Header */}
+            <div className="relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1.5">
+                        <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                            <MessageSquareWarningIcon className="h-3.5 w-3.5" />
+                            <span>Complaint Resolution Portal</span>
+                        </div>
+                        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+                            All Complaints
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            Monitor summary metrics and click below to view, update, or delete user complaints.
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -244,120 +238,225 @@ export default function AdminComplaintsPage() {
                 />
             </div>
 
-            {/* Complaints Table */}
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Subject</TableHead>
-                            <TableHead>User</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Created</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center py-8">
-                                    <Loader2Icon className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
-                                </TableCell>
-                            </TableRow>
-                        ) : error ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center py-8 text-destructive">
-                                    Failed to load complaints
-                                </TableCell>
-                            </TableRow>
-                        ) : filteredComplaints.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                                    No complaints found
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            filteredComplaints.map((complaint: Complaint) => (
-                                <TableRow key={complaint.id}>
-                                    <TableCell className="font-medium max-w-[300px] truncate">
-                                        {complaint.subject}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div>
-                                            <p className="font-medium">{complaint.user?.name || "Unknown"}</p>
-                                            <p className="text-sm text-muted-foreground">{complaint.user?.email || "N/A"}</p>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={statusConfig[complaint.status].variant} className="gap-1">
-                                            {statusConfig[complaint.status].icon}
-                                            {statusConfig[complaint.status].label}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>{formatDate(complaint.createdAt)}</TableCell>
-                                    <TableCell className="text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger
-                                                className={cn(
-                                                    buttonVariants({ variant: "ghost", size: "icon" }),
-                                                    "text-muted-foreground hover:text-foreground cursor-pointer"
-                                                )}
-                                                aria-label="Actions"
-                                            >
-                                                <MoreVertical className="h-4 w-4" />
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem
-                                                    className="cursor-pointer gap-2"
-                                                    onClick={() => handleEditClick(complaint)}
-                                                    disabled={updateComplaintMutation.isPending}
-                                                >
-                                                    <EditIcon className="h-4 w-4" />
-                                                    Update Status
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem
-                                                    className="cursor-pointer gap-2 text-destructive focus:text-destructive"
-                                                    onClick={() => setDeleteId(complaint.id)}
-                                                    disabled={deleteComplaintMutation.isPending}
-                                                >
-                                                    <Trash2Icon className="h-4 w-4" />
-                                                    Delete
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
+            {/* Action Bar: Toggle "Get All Complaints" */}
+            <div className="flex flex-wrap items-center gap-4 pt-2">
+                <Button
+                    type="button"
+                    onClick={() => setShowAllComplaints((prev) => !prev)}
+                    variant={showAllComplaints ? "default" : "outline"}
+                    className={`h-12 px-6 rounded-xl font-semibold transition-all ${showAllComplaints
+                            ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/20 border-0"
+                            : "border-amber-500/30 hover:bg-amber-500/10 text-foreground"
+                        }`}
+                >
+                    {showAllComplaints ? (
+                        <>
+                            <EyeOffIcon className="mr-2 h-4 w-4" />
+                            Hide All Complaints
+                        </>
+                    ) : (
+                        <>
+                            <EyeIcon className="mr-2 h-4 w-4 text-amber-500" />
+                            Get All Complaints ({complaints.length})
+                        </>
+                    )}
+                </Button>
             </div>
+
+            {/* Complaints Table — শুধুমাত্র "Get All Complaints" বাটনে ক্লিক করলেই নিচে দেখাবে */}
+            {showAllComplaints && (
+                <Card className="rounded-2xl border-border/70 shadow-sm overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    <CardHeader className="border-b bg-muted/20 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <CardTitle className="text-lg font-bold">User Complaints List</CardTitle>
+                            <CardDescription>
+                                Filter by status, update progress, or remove resolved records
+                            </CardDescription>
+                        </div>
+
+                        {/* Filters */}
+                        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                            <div className="relative w-full sm:w-72">
+                                <SearchIcon className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search by subject, user..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="pl-10 h-10 rounded-xl bg-background focus-visible:ring-amber-500"
+                                />
+                            </div>
+                            <div className="relative w-full sm:w-44">
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value as ComplaintStatus | "all")}
+                                    className="w-full h-10 appearance-none pl-9 pr-8 border border-input bg-background rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                >
+                                    <option value="all">All Statuses</option>
+                                    <option value="PENDING">Pending</option>
+                                    <option value="IN_PROGRESS">In Progress</option>
+                                    <option value="RESOLVED">Resolved</option>
+                                </select>
+                                <CircleAlert className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 pointer-events-none" />
+                            </div>
+                        </div>
+                    </CardHeader>
+
+                    <CardContent className="p-0">
+                        <Table>
+                            <TableHeader className="bg-muted/30">
+                                <TableRow>
+                                    <TableHead className="pl-6 font-bold">Subject</TableHead>
+                                    <TableHead className="font-bold">User</TableHead>
+                                    <TableHead className="font-bold">Status</TableHead>
+                                    <TableHead className="font-bold">Created</TableHead>
+                                    <TableHead className="text-right pr-6 font-bold">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {isLoading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center py-12">
+                                            <Loader2Icon className="mx-auto h-7 w-7 animate-spin text-amber-500" />
+                                        </TableCell>
+                                    </TableRow>
+                                ) : error ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center py-12 text-destructive font-medium">
+                                            Failed to load complaints
+                                        </TableCell>
+                                    </TableRow>
+                                ) : filteredComplaints.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                                            No complaints found
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    filteredComplaints.map((complaint: Complaint) => (
+                                        <TableRow key={complaint.id} className="hover:bg-muted/20 transition-colors">
+                                            <TableCell className="pl-6 font-semibold max-w-[280px]">
+                                                <p className="truncate text-foreground">{complaint.subject}</p>
+                                                <p className="text-xs text-muted-foreground font-normal truncate mt-0.5">
+                                                    {complaint.description}
+                                                </p>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2.5">
+                                                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/10 text-amber-500 shrink-0">
+                                                        <UserIcon className="h-4 w-4" />
+                                                    </span>
+                                                    <div>
+                                                        <p className="font-semibold text-sm text-foreground">
+                                                            {complaint.user?.name || "Unknown"}
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {complaint.user?.email || "N/A"}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant={statusConfig[complaint.status].variant} className="gap-1">
+                                                    {statusConfig[complaint.status].icon}
+                                                    {statusConfig[complaint.status].label}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-sm text-muted-foreground">
+                                                {formatDate(complaint.createdAt)}
+                                            </TableCell>
+                                            <TableCell className="text-right pr-6">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => handleEditClick(complaint)}
+                                                        disabled={updateComplaintMutation.isPending}
+                                                        className="h-8 px-3 rounded-lg border-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 gap-1.5"
+                                                    >
+                                                        <EditIcon className="h-3.5 w-3.5" />
+                                                        <span className="text-xs font-semibold">Status</span>
+                                                    </Button>
+
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setDeleteId(complaint.id)}
+                                                        disabled={deleteComplaintMutation.isPending}
+                                                        className="h-8 px-3 rounded-lg border-red-500/20 text-red-600 hover:text-red-700 hover:bg-red-500/10 gap-1.5"
+                                                    >
+                                                        <Trash2Icon className="h-3.5 w-3.5" />
+                                                        <span className="text-xs font-semibold">Delete</span>
+                                                    </Button>
+
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger
+                                                            className={cn(
+                                                                buttonVariants({ variant: "ghost", size: "icon" }),
+                                                                "h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
+                                                            )}
+                                                            aria-label="Actions"
+                                                        >
+                                                            <MoreVertical className="h-4 w-4" />
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem
+                                                                className="cursor-pointer gap-2"
+                                                                onClick={() => handleEditClick(complaint)}
+                                                                disabled={updateComplaintMutation.isPending}
+                                                            >
+                                                                <EditIcon className="h-4 w-4" />
+                                                                Update Status
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem
+                                                                className="cursor-pointer gap-2 text-destructive focus:text-destructive"
+                                                                onClick={() => setDeleteId(complaint.id)}
+                                                                disabled={deleteComplaintMutation.isPending}
+                                                            >
+                                                                <Trash2Icon className="h-4 w-4" />
+                                                                Delete
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Edit Status Dialog */}
             <Dialog
                 open={!!editId}
                 onOpenChange={(open) => !open && (setEditId(null), setEditComplaint(null))}
             >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Update Complaint Status</DialogTitle>
+                <DialogContent className="max-w-md rounded-2xl p-6 shadow-2xl">
+                    <DialogHeader className="space-y-2">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500">
+                            <EditIcon className="h-5 w-5" />
+                        </div>
+                        <DialogTitle className="text-xl font-bold">Update Complaint Status</DialogTitle>
                         <DialogDescription>
-                            Update the status for: {editComplaint?.subject}
+                            Update the status for: <strong className="text-foreground">{editComplaint?.subject}</strong>
                         </DialogDescription>
                     </DialogHeader>
                     <FormProvider {...editForm}>
                         <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
-                            <div className="grid gap-4 py-4">
+                            <div className="grid gap-4 py-2">
                                 <FormField
                                     control={editForm.control}
                                     name="status"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Status</FormLabel>
+                                            <FormLabel className="font-semibold">Status</FormLabel>
                                             <FormControl>
                                                 <select
                                                     {...field}
-                                                    className="w-full border border-input bg-background rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                                    className="w-full h-11 border border-input bg-background rounded-xl px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500"
                                                 >
                                                     <option value="PENDING">Pending</option>
                                                     <option value="IN_PROGRESS">In Progress</option>
@@ -369,8 +468,23 @@ export default function AdminComplaintsPage() {
                                     )}
                                 />
                             </div>
-                            <DialogFooter>
-                                <Button type="submit" disabled={updateComplaintMutation.isPending}>
+                            <DialogFooter className="gap-2 sm:gap-0 pt-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setEditId(null);
+                                        setEditComplaint(null);
+                                    }}
+                                    className="rounded-xl"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={updateComplaintMutation.isPending}
+                                    className="rounded-xl font-semibold text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 border-0"
+                                >
                                     {updateComplaintMutation.isPending ? (
                                         <>
                                             <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
@@ -388,21 +502,30 @@ export default function AdminComplaintsPage() {
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Delete Complaint</DialogTitle>
-                        <DialogDescription>
+                <DialogContent className="max-w-md rounded-2xl p-6 shadow-2xl">
+                    <DialogHeader className="flex flex-col items-center text-center space-y-3">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 text-red-600">
+                            <AlertTriangleIcon className="h-7 w-7" />
+                        </div>
+                        <DialogTitle className="text-xl font-bold">Delete Complaint</DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground">
                             Are you sure you want to delete this complaint? This action cannot be undone.
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setDeleteId(null)}>
+                    <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => setDeleteId(null)}
+                            disabled={deleteComplaintMutation.isPending}
+                            className="flex-1 rounded-xl"
+                        >
                             Cancel
                         </Button>
                         <Button
                             variant="destructive"
                             onClick={handleDelete}
                             disabled={deleteComplaintMutation.isPending}
+                            className="flex-1 rounded-xl font-semibold"
                         >
                             {deleteComplaintMutation.isPending ? (
                                 <>
